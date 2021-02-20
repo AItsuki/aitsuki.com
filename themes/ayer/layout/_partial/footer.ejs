@@ -1,0 +1,46 @@
+<footer class="footer">
+  <div class="outer" style="font-size: 14px;">
+    <ul>
+      <li>
+        &copy;
+        <% if (theme.since && !isNaN(theme.since) && theme.since < date(new Date(), 'YYYY')) { %><%- theme.since%>-<% } %><%= date(new Date(), 'YYYY') %>
+         <%= config.author || config.title %>
+         <a href="<%= theme.icp.url %>" target="_black" rel="nofollow"><%= theme.icp.text %></a>
+      </li>
+    </ul>
+    <ul>
+      <% if (theme.gongan&&theme.gongan.enable){ %>
+      <li>
+          <a target="_blank" rel="nofollow" href="<%= theme.gongan.url %>" style="display: inline-block;padding-left: 22px;background: url(https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/beian.png) no-repeat"><%= theme.gongan.text %></a>
+      </li>
+        <% } %>
+    </ul>
+    <!-- <ul>
+      <li>
+        <% if (theme.pageFooter){ %>
+        <% var hexoLink = '<a href="https://hexo.io" target="_blank">Hexo</a>'; %>
+        <% var themeLink = '<a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>'; %>
+        <%- __('powered_by', hexoLink) %>
+        <span class="division">|</span>
+        <%- __('theme', themeLink) %>
+        <% } %>
+      </li>
+    </ul>
+    <ul>
+      <li>
+        <% if (theme.busuanzi && theme.busuanzi.enable){ %>
+        <%# "不蒜子统计" %>
+        <%- partial('post/busuanzi') %>
+        <% } %>
+      </li>
+    </ul> -->
+    <!-- <ul>
+      <li> -->
+        <!-- cnzz统计 -->
+        <!-- <% if (theme.cnzz&&theme.cnzz.enable){ %>
+        <script type="text/javascript" src='<%= theme.cnzz.url%>'></script>
+        <% } %>
+      </li>
+    </ul> -->
+  </div>
+</footer>
