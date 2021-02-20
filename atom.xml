@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Aitsuki</title>
+  
+  <subtitle>Days of Dash!</subtitle>
+  <link href="https://aitsuki.com/atom.xml" rel="self"/>
+  
+  <link href="https://aitsuki.com/"/>
+  <updated>2021-02-20T19:19:10.252Z</updated>
+  <id>https://aitsuki.com/</id>
+  
+  <author>
+    <name>Aitsuki</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>算法4 二维碰撞（冲量方案）</title>
+    <link href="https://aitsuki.com/2021/02/04/algs4-2d-collision-impluse-resolution/"/>
+    <id>https://aitsuki.com/2021/02/04/algs4-2d-collision-impluse-resolution/</id>
+    <published>2021-02-04T10:34:00.000Z</published>
+    <updated>2021-02-20T19:19:10.252Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;碰撞检测分为两种类型，一种是“后验的（&lt;em&gt;posteriori&lt;/em&gt; ）”&lt;strong&gt;离散点的碰撞检测&lt;/strong&gt;，另一种则是“先验的（priori）”&lt;strong&gt;连续碰撞检测&lt;/strong&gt;。&lt;/p&gt;
+&lt;h2</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 A* 算法和8puzzle</title>
+    <link href="https://aitsuki.com/2021/01/20/algs4-astar-and-8puzzle/"/>
+    <id>https://aitsuki.com/2021/01/20/algs4-astar-and-8puzzle/</id>
+    <published>2021-01-20T00:11:00.000Z</published>
+    <updated>2021-02-20T19:19:05.388Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;A* 算法（A-start search algorithm）是一种用于图形遍历和路径搜索的&lt;strong&gt;启发式搜索算法&lt;/strong&gt; 或&lt;strong&gt;最佳优先&lt;/strong&gt;算法，它诞生于一个人工智能项目</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 优先队列和堆排序</title>
+    <link href="https://aitsuki.com/2021/01/18/algs4-priorityqueue-and-heapsort/"/>
+    <id>https://aitsuki.com/2021/01/18/algs4-priorityqueue-and-heapsort/</id>
+    <published>2021-01-18T09:57:00.000Z</published>
+    <updated>2021-02-20T19:19:00.515Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;优先队列(priority queue)区别于普通队列，在优先队列中，元素被赋予优先级。当访问元素时，拥有最高优先级的元素最先被删除。优先队列数据结构中主要的两个操作是插入元素和删除最大或最小元素。它的API如下：&lt;/p&gt;
+&lt;p&gt;&lt;img</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 快速排序</title>
+    <link href="https://aitsuki.com/2021/01/14/algs4-quicksort/"/>
+    <id>https://aitsuki.com/2021/01/14/algs4-quicksort/</id>
+    <published>2021-01-13T22:35:00.000Z</published>
+    <updated>2021-02-20T19:18:55.426Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;快速排序被认为是20世纪中最重要的算法之一，在1960年由Tony</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 归并排序</title>
+    <link href="https://aitsuki.com/2021/01/12/algs4-mergesort/"/>
+    <id>https://aitsuki.com/2021/01/12/algs4-mergesort/</id>
+    <published>2021-01-12T15:50:00.000Z</published>
+    <updated>2021-02-20T19:18:50.555Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;归并排序是我们学习的第一个使用分治法实现的排序算法，它也是唯一一个时间复杂度为&lt;code&gt;NlogN&lt;/code&gt;的常用的稳定排序算法，有比它效率更高的排序算法，但却不是稳定的。&lt;/p&gt;
+&lt;p&gt;分治法是将一个大的问题分成若干个规模较小的相同问题，从而降低问题的复杂度，它是</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 初级排序算法</title>
+    <link href="https://aitsuki.com/2021/01/04/algs4-elementary-sorts/"/>
+    <id>https://aitsuki.com/2021/01/04/algs4-elementary-sorts/</id>
+    <published>2021-01-03T17:40:00.000Z</published>
+    <updated>2021-02-20T19:18:45.300Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;排序的算法的应用实在是太广泛了，作为算法的基础部分，本文将讲述几种最简单的排序算法，分别是选择排序、插入排序和希尔排序。而冒泡排序因为其实现和插入排序实在是太相似了，并不做过多的叙述。另外这里非常推荐一个网站，包含常用排序算法的动画演示：&lt;a</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 栈和队列</title>
+    <link href="https://aitsuki.com/2021/01/02/algs4-stack-and-queue/"/>
+    <id>https://aitsuki.com/2021/01/02/algs4-stack-and-queue/</id>
+    <published>2021-01-02T01:16:00.000Z</published>
+    <updated>2021-02-20T19:20:09.148Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;数组是和链表是编程语言中最基本的数据存储结构了，其他更复杂的数据结构都是基于这两者实现的。而栈和队列则是最基础且被广泛使用的数据结构，我不想过多的赘述如何实现他们，只是提及一些注意事项和一些基本用法。&lt;/p&gt;
+&lt;h2</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 算法分析</title>
+    <link href="https://aitsuki.com/2020/12/29/algs4-analysis/"/>
+    <id>https://aitsuki.com/2020/12/29/algs4-analysis/</id>
+    <published>2020-12-29T11:34:00.000Z</published>
+    <updated>2021-02-20T19:18:35.307Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;分析一个算法的运行时间和内存占用是有必要的，这样我们才能正确的分析出算法不足的地方并加以优化，本文将带你了解分析一个算法的基本方式和步骤。&lt;/p&gt;
+&lt;ol</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>算法4 并查集</title>
+    <link href="https://aitsuki.com/2020/12/27/algs4-union-find/"/>
+    <id>https://aitsuki.com/2020/12/27/algs4-union-find/</id>
+    <published>2020-12-27T14:53:00.000Z</published>
+    <updated>2021-02-20T19:19:44.336Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;爱因斯坦说过：”如果你不能给一个六岁小孩解释清楚，那你并不真的懂。“，所以我准备写一系列关于算法的文章。&lt;/p&gt;
+&lt;p&gt;我是通过《算法 第4版》这本书和它的&lt;a href=&quot;https://algs4.cs.princeton.edu/&quot;&gt;配套网站&lt;/a&gt;和&lt;a</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Lnmp WordPress 搭建个人博客</title>
+    <link href="https://aitsuki.com/2020/12/19/build-personal-blog-by-lemp-wordpress/"/>
+    <id>https://aitsuki.com/2020/12/19/build-personal-blog-by-lemp-wordpress/</id>
+    <published>2020-12-19T04:35:00.000Z</published>
+    <updated>2021-02-20T19:19:28.240Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;在开始前，可以先准备好用于搭建个人博客的服务器和域名，或者使用虚拟机练习搭建。服务器选择1cpu 1g内存</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Bye bye，2020</title>
+    <link href="https://aitsuki.com/2020/12/18/bye-bye-2020/"/>
+    <id>https://aitsuki.com/2020/12/18/bye-bye-2020/</id>
+    <published>2020-12-18T13:04:00.000Z</published>
+    <updated>2021-02-20T19:19:24.131Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;想写点感想时才发现自己是个文盲，听歌吧！&lt;/p&gt;
+&lt;iframe frameborder=&quot;no&quot; border=&quot;0&quot; marginwidth=&quot;0&quot; marginheight=&quot;0&quot; width=&quot;330&quot; height=&quot;86&quot;</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+</feed>

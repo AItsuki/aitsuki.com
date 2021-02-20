@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="算法,Android,js" />
+   
+  <meta name="description" content="Aitsuki的技术博客" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    算法4 并查集 |  Aitsuki
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+<link rel="alternate" href="/atom.xml" title="Aitsuki" type="application/atom+xml">
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-2020-12-27 并查集"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  算法4 并查集
+</h1>
+ 
+
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2020/12/27/algs4-union-find/" class="article-date">
+  <time datetime="2020-12-27T14:53:00.000Z" itemprop="datePublished">2020-12-27</time>
+</a>  
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <p>爱因斯坦说过：”如果你不能给一个六岁小孩解释清楚，那你并不真的懂。“，所以我准备写一系列关于算法的文章。</p>
+<p>我是通过《算法 第4版》这本书和它的<a target="_blank" rel="noopener" href="https://algs4.cs.princeton.edu/">配套网站</a>和<a target="_blank" rel="noopener" href="https://www.coursera.org/learn/algorithms-part1">Coursera课程</a>学习的，当时的学习过程实在有点曲折，首先是由于翻译的原因书中的许多描述非常啰嗦，另外就是Coursera课程的中文字幕是机器翻译的，还不如硬啃英文。但是本着“我真的懂”的信念，我想尽量让你们不看这些书和课程，更加轻松的学习到《算法 第4版》中的相关知识。</p>
+<p>配套网站中的资源还是非常有用的，如果我重新构造这些东西将耗费大量的时间，并且没有合适的位置存放这些资源，所以接下来的文章我都准备沿用配套网站中的资源；</p>
+<ol type="1">
+<li>安装编程环境：<a target="_blank" rel="noopener" href="https://lift.cs.princeton.edu/java/windows/">Windows</a>，<a target="_blank" rel="noopener" href="https://lift.cs.princeton.edu/java/mac/">Mac</a>，<a target="_blank" rel="noopener" href="https://lift.cs.princeton.edu/java/linux/">Linux</a></li>
+<li>资源文件(主要是测试数据)：<a target="_blank" rel="noopener" href="https://algs4.cs.princeton.edu/code/algs4-data.zip">打包下载</a>，<a target="_blank" rel="noopener" href="https://introcs.cs.princeton.edu/java/data/">按需</a></li>
+</ol>
+<p>《算法 第4版》这本书中，我们接触到的第一个算法是Union-Find，也称为<strong>并查集</strong>，用于解决动态连通性问题。以这个算法作为开篇是有原因的，该算法本身非常简单，拥有多个改进算法，可以渐进式的教学。另外就是该算法有足够的趣味性，能解决实际问题，也为我们了解开发一个算法的基本步骤：</p>
+<ol type="1">
+<li>对问题进行建模；</li>
+<li>尝试找到一个算法解决它；</li>
+<li>算法是否足够快，是否符合内存要求；</li>
+<li>如果不是，找出问题所在；</li>
+<li>重复以上步骤直到结果令人满意。</li>
+</ol>
+<h2 id="动态连通性问题">动态连通性问题</h2>
+<p>假设存在这样一个模型，可以录一对对象 <code>a-b</code>，表示a和b是相连的；后续可以继续录入更多对对象，<code>c-d</code>，<code>b-c</code>……</p>
+<p>而这个模型的作用是在任意时刻可以查询任意两个对象是否连通，而“动态”的意思则是原本非连通的两个对象，可能在某个时刻后连通，例如上面a和d原本是没有连通的，但是在录入<code>b-c</code>后它们就连通了。</p>
+<p>动态连通性问题存在许多应用：</p>
+<ul>
+<li>计算机网络中，某台计算机是否需要架设线一条新的线路才能和另一台计算机连接；</li>
+<li>社交网络中，两个人是否存某种联系；</li>
+<li>电子芯片中，两个触点是否可以连通；</li>
+</ul>
+<p>以上应用都可能是超大规模的问题，如何快速的查询两个对象是否连通或者连通两个对象？</p>
+<figure>
+<img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210120104144.png" alt="大规模问题" /><figcaption aria-hidden="true">大规模问题</figcaption>
+</figure>
+<h2 id="步骤1建模">步骤1：建模</h2>
+<h3 id="数学模型">数学模型</h3>
+<p>动态连通性问题很容易让人联想到集合论中的等价关系，等价关系是非空集合上的一个二元关系，主要用于划分集合，将一个较大的集合划分成多个子集，而每个子集称为”等价类“，选取每类的代表元素来降低问题的复杂度。同时满足自反性、对称性、传递性的二元关系才能被称为等价关系。在这里，我们有必要证明动态连通性具有等价关系，以表示我们的建模是符合数学规律的。</p>
+<p>假设p和q相连中的“相连”是一个二元关系：</p>
+<ul>
+<li>自反性：p和p是相连的；</li>
+<li>对称性：p和q相连的，那么q和p也是相连的；</li>
+<li>传递性：p和q相连，q和r相连，那么p和r也是相连的。</li>
+</ul>
+<p>现在我们可以将集合中对象划分成多个等价类，查询两个对象是否相连即查询他们是否属于同一个等价类，连通两个对象即合并两个等价类。</p>
+<p>这也是“并查集”名字的由来，因为它的原理正是通过集合的“合并”、“查询”实现的。</p>
+<h3 id="编程模型">编程模型</h3>
+<p>为了方便描述，下面我们将对象称为“<strong>触点</strong>”，将相连称为“<strong>连接</strong>”，将等价类称为“<strong>连通分量</strong>”或直接称为“分量”。</p>
+<h4 id="设计数据类型">设计数据类型</h4>
+<ol type="1">
+<li>用数组表示集合；</li>
+<li>数组索引表示触点的id；</li>
+<li>数组元素表示分量的id；</li>
+</ol>
+<p>具有相同分量id的所有触点之间存在等价关系，即他们都是相连的。</p>
+<h4 id="设计api">设计API</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UF</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 构造包含N个触点的并查集</span></span><br><span class="line">    UF(<span class="keyword">int</span> N)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 连通两个分量</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">union</span><span class="params">(<span class="keyword">int</span> p, <span class="keyword">int</span> q)</span></span></span><br><span class="line"><span class="function">    </span></span><br><span class="line"><span class="function">    <span class="comment">// 查询分量名称</span></span></span><br><span class="line"><span class="function">    <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> p)</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+<h4 id="测试客户端">测试客户端</h4>
+<p>测试数据：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">~&gt; cat tinyUF.txt</span><br><span class="line">10</span><br><span class="line">4 3</span><br><span class="line">3 8</span><br><span class="line">6 5</span><br><span class="line">9 4</span><br><span class="line">2 1</span><br><span class="line">8 9</span><br><span class="line">5 0</span><br><span class="line">7 2</span><br><span class="line">6 1</span><br><span class="line">1 0</span><br><span class="line">6 7</span><br></pre></td></tr></table></figure>
+<p>我们读取文件第一个整数，表示问题规模。后续读取一对整数，查询他们是否相连。如果不相连则连通他们，并输出到控制台。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n = StdIn.readInt();</span><br><span class="line">    UF uf = <span class="keyword">new</span> UF(n);</span><br><span class="line">    <span class="keyword">while</span>(!StdIn.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">int</span> p = StdIn.readInt();</span><br><span class="line">        <span class="keyword">int</span> q = StdIn.reqdInt();</span><br><span class="line">        <span class="keyword">if</span> (uf.find(p) != uf.find(q)) &#123;</span><br><span class="line">            uf.union(p, q);</span><br><span class="line">            StdOut.println(p + <span class="string">&quot; &quot;</span> + q);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="步骤2-5迭代">步骤2-5：迭代</h2>
+<h3 id="quickfind">QuickFind</h3>
+<p>我们的第一目标应该是找出一个可行的算法，而不是最优的算法，并尝试实现它。按照我们一开始的设计，算法应该是这样的：</p>
+<ol type="1">
+<li>数组索引表示触点id；</li>
+<li>数组元素表示分量id；</li>
+<li>分量id相同触点表示它们是相连的；</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> class <span class="title">QuickFindUF</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] ids;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 初始状态每个触点可以表示大小为1的分量，即分量id = 触点id</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">QuickFindUF</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">        ids = <span class="keyword">new</span> <span class="keyword">int</span>[n];</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            ids[i] = i;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 查询触点所在的分量的id</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> p)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ids[p];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 连接两个触点，即合并分量</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">union</span><span class="params">(<span class="keyword">int</span> p, <span class="keyword">int</span> q)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> pid = find(p);</span><br><span class="line">        <span class="keyword">int</span> qid = find(q);</span><br><span class="line">        <span class="comment">// 遍历数组，将分量p的id改为分量q的id，表示合并两个分量</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; ids.length; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (ids[i] == pid) &#123;</span><br><span class="line">                ids[p] = qid;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr class="header">
+<th>find()</th>
+<th>union()</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1（常数级）</td>
+<td>N （线性级）</td>
+</tr>
+</tbody>
+</table>
+<p>对于N个触点M条连接的规模，quickfind整体的时间复杂度：~ NM，平方级。</p>
+<h3 id="quickunion">QuickUnion</h3>
+<p>quick-find算法效率低的主要原因在于，合并两个分量代价太高，每次合并都需要遍历整个数组，我们尝试改进：</p>
+<ul>
+<li>数组的索引依旧用来表示触点id；</li>
+<li>数组的元素不再表示分量id，而是表示与它连接的另一个触点的id。这样可以将数组变成森林，森林中的每棵树则表示分量，树上的叶子表示触点；</li>
+<li>通过任意触点可以查找到树的根节点（索引和元素相同）；</li>
+<li>根节点相同即表示两个触点是相连的；</li>
+<li>合并两个分量只需要合并两棵树，即连接他们的根节点。</li>
+</ul>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201224114344.png" alt="QuickUnion" style="zoom:80%;" /></p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201224114344.png" alt="QuickUnion" style="zoom:80%;" /></p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201224114746.png" alt="QuickUnion" style="zoom:84%;" /></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QuickUnionUF</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] ids;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">QuickUnionUF</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">        ids = <span class="keyword">new</span> <span class="keyword">int</span>[n];</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)</span><br><span class="line">            ids[i] = i;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> p)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span>(p != ids[p])</span><br><span class="line">            p = ids[p];</span><br><span class="line">        <span class="keyword">return</span> p;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">union</span><span class="params">(<span class="keyword">int</span> p, <span class="keyword">int</span> q)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> rootQ = find(p);</span><br><span class="line">        <span class="keyword">int</span> rootP = find(q);</span><br><span class="line">        ids[rootP] = rootQ;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr class="header">
+<th>find()</th>
+<th>union()</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1~N</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>对于N个触点M条连接的规模，quickunion整体的时间复杂度：&lt; NM，接近平方级。</p>
+<p>quick-union算法整体上要比quick-find更快，因为find的方法是次线性的，不需要每次遍历完整个数组。但是存在一种情况让它的性能变为平方级：</p>
+<p>假设输入的整数对是<code>1-0</code>，<code>2-0</code>，<code>3-0</code>，<code>4-0</code>... 那么将得到一棵非常高的树，只有树干没有叶子。这种情况下，find方法的成本是平方级增长的:</p>
+<p><code>3+5+7+...+2n-1 ~ N^2</code></p>
+<p>所以<strong>quick-union算法的时间成本取决于森林中的树的高度</strong>。</p>
+<h3 id="weightedquickunion">WeightedQuickUnion</h3>
+<p>quick-union算法的时间成本是取决于森林中的树的高度的，那么我们只需要避免出现一棵非常高的树就可以大大增加quick-union算法的性能。</p>
+<p>这个改进非常非常简单，只需要在合并两棵树时判断树的“大小”，永远只将较小的树归并到较大的树即可。</p>
+<p>为此，我们的代价只是使用多一个数组用于记录分量大小。</p>
+<blockquote>
+<p>思考：这里为什么记录的是树的大小而非树的高度？如何记录树的高度？</p>
+<p>实际上对于加权的quick-union算法，判断树的高度和树的大小的性能差距非常小。但是后续有一项优化叫做“路径压缩”，这会让树的高度发生变化，但是树的大小不变，这使得记录树的高度变得非常困难，得不偿失。</p>
+<p>记录树的高度的方式：只有相同大小的树合并时，树的高度才会增加。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WeightedQuickUnionUF</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] ids;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] sz;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">WeightQuickUnionUF</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">        ids = <span class="keyword">new</span> <span class="keyword">int</span>[n];</span><br><span class="line">        sz = <span class="keyword">new</span> <span class="keyword">int</span>[n];</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            ids[i] = i;</span><br><span class="line">            sz[i] = <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 代码和quick-union相同</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> p)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span>(p != ids[p])</span><br><span class="line">            p = ids[p];</span><br><span class="line">        <span class="keyword">return</span> p;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">union</span><span class="params">(<span class="keyword">int</span> p, <span class="keyword">int</span> q)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> rootP = find(p);</span><br><span class="line">        <span class="keyword">int</span> rootQ = find(q);</span><br><span class="line">        <span class="comment">// 判断分量大小，永远只将小的分量合并到大的分量中，可以尽量避免树的高度增加。</span></span><br><span class="line">        <span class="keyword">if</span> (sz[rootP] &lt; sz[rootQ]) &#123;</span><br><span class="line">            ids[rootP] = rootQ;</span><br><span class="line">            sz[rootQ] += sz[rootP];</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ids[rootQ] = rootP;</span><br><span class="line">            sz[rootP] += sz[rootQ];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每当两棵树合并时，树的大小翻倍，一棵树的大小最大只能为N。所以 <code>2*2*2*...*2 &lt;= N</code>，即树的高度最多为 <code>logN</code> ;</p>
+<table>
+<thead>
+<tr class="header">
+<th>find()</th>
+<th>union()</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>logN</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>对于N个触点M条连接的规模，WeightedQuickUnion整体的时间复杂度：~ MlogN，线性对数级。</p>
+<h3 id="quickunion-path-compression">QuickUnion + Path Compression</h3>
+<p>还有一种基于quick-union算法的改进，即路径压缩。在每次查找分量的同时压缩路劲，压缩的方式有两种，分别是Two-pass和One-pass。</p>
+<h4 id="two-pass-compression">Two-pass Compression</h4>
+<p>这种路径压缩方式是将让森林完全扁平化，树的高度为1，所有叶子节点直接和根节点相连。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> p)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> op = p;</span><br><span class="line">    <span class="comment">// 先找到根节点</span></span><br><span class="line">    <span class="keyword">while</span>(ids[p] != p)</span><br><span class="line">        p = ids[p];</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 重新遍历一次进行路径压缩。</span></span><br><span class="line">    <span class="keyword">int</span> parent;</span><br><span class="line">    <span class="keyword">while</span>(ids[op] != p) &#123;</span><br><span class="line">        parent = ids[op];</span><br><span class="line">        <span class="comment">// 将叶子节点直接连接到根节点</span></span><br><span class="line">        ids[op] = p;</span><br><span class="line">        op = parent;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下图演示了<code>find(9)</code>的路径压缩过程：</p>
+<figure>
+<img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210120135640.png" alt="Two-pass" /><figcaption aria-hidden="true">Two-pass</figcaption>
+</figure>
+<table>
+<thead>
+<tr class="header">
+<th>find()</th>
+<th>union()</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>logN</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>对于N个触点M条连接的规模，WeightedQuickUnion整体的时间复杂度：~ MlogN​，线性对数级。</p>
+<h4 id="one-pass-compression">One-pass Compression</h4>
+<p>One-pass实现起来更加简单，每次查找时将节点连接到前一个父节点，从而使得路径减半，只需要增加一行代码，但是他的性能和Two-pass是一样的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> p)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(ids[p] != p) &#123;</span><br><span class="line">        ids[p] = ids[ids[p]];</span><br><span class="line">        p = ids[p];</span><br><span class="line">    &#125;</span><br><span class="line">    retrun p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure>
+<img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210120140955.png" alt="One-pass" /><figcaption aria-hidden="true">One-pass</figcaption>
+</figure>
+<h3 id="weightedquickunion-path-compression">WeightedQuickUnion + Path Compression</h3>
+<p>路径压缩加权的quick-union算法可以说是动态连通性问题的最优解了。想要分析它的性能非常困难，但是Hopcroft-Ulman和Tarjan已经证明了find方法的成本为<code>log*N</code>，表示使N变为1时需要取对数的次数，称为迭代对数。可以认为，他在自然界中的值最大为5。</p>
+<table>
+<thead>
+<tr class="header">
+<th>N</th>
+<th>log*N(2为底)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td>65536</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td>2^65536</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>这使得find方法的成本非常非常接近常数级，但还达不到常数级。对于N个触点M条连接的规模，算法整体的时间复杂度：~ <code>Mlog*N</code></p>
+<h2 id="性能对比">性能对比</h2>
+<p>动态连通性各个算法的性能对比如下（N个对象M条连接时）：</p>
+<table>
+<thead>
+<tr class="header">
+<th>算法</th>
+<th>最坏情况下</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>quick-find</td>
+<td>M N</td>
+</tr>
+<tr class="even">
+<td>quick-union</td>
+<td>M N</td>
+</tr>
+<tr class="odd">
+<td>weighted QU</td>
+<td>N + M log N （+N是创建size数组）</td>
+</tr>
+<tr class="even">
+<td>QU + path compression</td>
+<td>N + M log N（+N是创建size数组）</td>
+</tr>
+<tr class="odd">
+<td>weighted QU + path compression</td>
+<td>N + M log* N（+N是创建size数组）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="应用渗滤percolation">应用：渗滤（Percolation）</h2>
+<p>渗滤模型主要用于科学领域中判断某些液体是否可以渗透过某些材料，并且估算出一个渗滤阈值。或者用在游戏中的物理引擎，判断水流是否可以流通等场景。</p>
+<p>定义N * N 的网格，每个网格开放的（白色块）概率为p，关闭的（黑色块）概率为 1 - p。如果顶部的网格和底部的网格可以连通，则表示这个系统是渗滤的。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227220933.png" alt="percolation" style="zoom:67%;" /></p>
+<p>下面是20 * 20的网格中，概率为p时的一些情况</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227221140.png" alt="percolation" style="zoom:67%;" /></p>
+<p>当p小于 0.4时，系统几乎都是阻塞的；当p大于0.8时，系统几乎都是渗滤的;而p在0.6左右时，都有可能。</p>
+<p>现在我们需要估计出一个精确渗滤阈值p* （用作科学参考，例如某些材料的密度）</p>
+<ul>
+<li>p &gt; p* 时，几乎可以断定是渗滤的。</li>
+<li>p &lt; p* 时，几乎可以断定是阻断的。</li>
+</ul>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227221912.png" alt="percolation probability" style="zoom:67%;" /></p>
+<p>没有一个数学公式能给出答案，但是通过计算机进行大量的模拟运算后得出这个值为0.593。</p>
+<p>模拟方式为初始化n * n 个阻断的格子，然后随机开放一个格子直到这个网格渗滤并计算开发格子的占比。将这个模拟运行上百万次，就可以得到一个比较可靠的阈值p*，这种方式也称为蒙特卡罗模拟。</p>
+<h3 id="实现分析">实现分析</h3>
+<p>初始化一个<code>n*n</code>大小的数组，用索引表示渗滤系统中的格子。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227222810.png" alt="percolation array" style="zoom:50%;" /></p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227222925.png" alt="percolation union" style="zoom:50%;" /></p>
+<p>如何确定这个系统是渗滤的？只需要在顶部和底部新增两个虚拟的格子，如果他们是可以连通的，那么表示这个系统的渗滤的。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227223036.png" alt="percolation vitrual site" style="zoom:50%;" /></p>
+<p>那么怎么模拟开放格子？开放格子然后连通上下左右的其他开放位即可。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20201227223227.png" alt="percolation open site" style="zoom:50%;" /></p>
+<h3 id="代码实现">代码实现</h3>
+<p>这个渗滤模型是<a target="_blank" rel="noopener" href="https://coursera.cs.princeton.edu/algs4/assignments/percolation/specification.php">Coursera上的一个作业</a>，可以到相关页面下载项目，提供了测试代码和许多有意思的测试数据。</p>
+<p>下面代码在coursera上的得分是96，失去的4分是因为内存使用过多（超了10~20%），用了两个并查集。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> edu.princeton.cs.algs4.WeightedQuickUnionUF;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Percolation</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>[] flags;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> n;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> openSitesCount;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> vt;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> vb;</span><br><span class="line">    <span class="keyword">private</span> WeightedQuickUnionUF uf;</span><br><span class="line">    <span class="keyword">private</span> WeightedQuickUnionUF uf2;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// creates n-by-n grid, with all sites initially blocked</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Percolation</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (n &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;N must be greater than zero.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.n = n;</span><br><span class="line">        flags = <span class="keyword">new</span> <span class="keyword">int</span>[n * n];</span><br><span class="line">        <span class="comment">// n * n is the top virtual site, n * n + 1 is the bottom virtual site.</span></span><br><span class="line">        uf = <span class="keyword">new</span> WeightedQuickUnionUF(n * n + <span class="number">2</span>);</span><br><span class="line">        uf2 = <span class="keyword">new</span> WeightedQuickUnionUF(n * n + <span class="number">1</span>);</span><br><span class="line">        vt = n * n;</span><br><span class="line">        vb = vt + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">index</span><span class="params">(<span class="keyword">int</span> row, <span class="keyword">int</span> col)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (row - <span class="number">1</span>) * n + col - <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkIndex</span><span class="params">(<span class="keyword">int</span> row, <span class="keyword">int</span> col)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (row &lt;= <span class="number">0</span> || row &gt; n || col &lt;= <span class="number">0</span> || col &gt; n) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Invalid row or col.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// opens the site (row, col) if it is not open already</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(<span class="keyword">int</span> row, <span class="keyword">int</span> col)</span> </span>&#123;</span><br><span class="line">        checkIndex(row, col);</span><br><span class="line">        <span class="keyword">int</span> c = index(row, col);</span><br><span class="line">        <span class="keyword">if</span> (flags[c] == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        flags[c] = <span class="number">1</span>;</span><br><span class="line">        openSitesCount++;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// union to top site</span></span><br><span class="line">        <span class="keyword">int</span> top = index(row - <span class="number">1</span>, col);</span><br><span class="line">        <span class="keyword">if</span> (row == <span class="number">1</span>) &#123;</span><br><span class="line">            uf.union(vt, c);</span><br><span class="line">            uf2.union(vt, c);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (flags[top] == <span class="number">1</span>) &#123;</span><br><span class="line">            uf.union(top, c);</span><br><span class="line">            uf2.union(top, c);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// union to left site</span></span><br><span class="line">        <span class="keyword">int</span> left = index(row, col - <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span> (col &gt; <span class="number">1</span> &amp;&amp; flags[left] == <span class="number">1</span>) &#123;</span><br><span class="line">            uf.union(left, c);</span><br><span class="line">            uf2.union(left, c);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// union to right site</span></span><br><span class="line">        <span class="keyword">int</span> right = index(row, col + <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span> (col &lt; n &amp;&amp; flags[right] == <span class="number">1</span>) &#123;</span><br><span class="line">            uf.union(right, c);</span><br><span class="line">            uf2.union(right, c);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// union to bottom site</span></span><br><span class="line">        <span class="keyword">int</span> bottom = index(row + <span class="number">1</span>, col);</span><br><span class="line">        <span class="keyword">if</span> (row == n) &#123;</span><br><span class="line">            uf.union(vb, c);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (flags[bottom] == <span class="number">1</span>) &#123;</span><br><span class="line">            uf.union(bottom, c);</span><br><span class="line">            uf2.union(bottom, c);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// is the site (row, col) open?</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isOpen</span><span class="params">(<span class="keyword">int</span> row, <span class="keyword">int</span> col)</span> </span>&#123;</span><br><span class="line">        checkIndex(row, col);</span><br><span class="line">        <span class="keyword">return</span> flags[index(row, col)] == <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// is the site (row, col) full?</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isFull</span><span class="params">(<span class="keyword">int</span> row, <span class="keyword">int</span> col)</span> </span>&#123;</span><br><span class="line">        checkIndex(row, col);</span><br><span class="line">        <span class="keyword">int</span> i = index(row, col);</span><br><span class="line">        <span class="keyword">return</span> uf2.find(i) == uf2.find(vt);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// returns the number of open sites</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">numberOfOpenSites</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> openSitesCount;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// does the system percolate?</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">percolates</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> uf.find(vt) == uf.find(vb);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// test client (optional)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>为什么使用了两个并查集？</strong></p>
+<p>因为这个模型中要求有个<code>isFull()</code>的方法，用来查询某个格子是否可以连通到顶部的格子。</p>
+<p>如果只使用一个并查集会导致<code>isFul</code>l方法出问题，因为当系统已经是渗滤的情况下顶部的虚拟位和底部的虚拟位是等价的，使得“连接到底部”和“连接到顶部”这两个条件是等价的，导致<code>isFull</code>方法返回了错误的结果。</p>
+<p>所以我使用了第二个并查集，它没有添加底部的虚拟位，单独用它来判断<code>isFull</code>。我没有想到更好的解决方案，如果实际使用中不需要<code>isFull</code>判断，否则性能能上升一个台阶。</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2020/12/29/algs4-analysis/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            算法4 算法分析
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/12/19/build-personal-blog-by-lemp-wordpress/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Lnmp WordPress 搭建个人博客</div>
+      </a>
+    
+  </nav>
+
+  
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer" style="font-size: 14px;">
+    <ul>
+      <li>
+        &copy;
+        2020-2021
+         Aitsuki
+         <a href="https://beian.miit.gov.cn/" target="_black" rel="nofollow">粤ICP备2020133133</a>
+      </li>
+    </ul>
+    <ul>
+      
+      <li>
+          <a target="_blank" rel="nofollow" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030502006706" style="display: inline-block;padding-left: 22px;background: url(https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/beian.png) no-repeat">粤公网安备44030502006706号</a>
+      </li>
+        
+    </ul>
+    <!-- <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul> -->
+    <!-- <ul>
+      <li> -->
+        <!-- cnzz统计 -->
+        <!-- 
+      </li>
+    </ul> -->
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/avatar.png" alt="Aitsuki"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i></p>
+  <div class="reward-box">
+    
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    collapseDepth: 6,
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+<!-- CanvasBackground -->
+
+
+    
+  </div>
+</body>
+
+</html>

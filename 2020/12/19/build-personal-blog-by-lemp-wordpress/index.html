@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="算法,Android,js" />
+   
+  <meta name="description" content="Aitsuki的技术博客" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Lnmp WordPress 搭建个人博客 |  Aitsuki
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+<link rel="alternate" href="/atom.xml" title="Aitsuki" type="application/atom+xml">
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-2020-12-19 Lnmp wordpress搭建博客"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Lnmp WordPress 搭建个人博客
+</h1>
+ 
+
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2020/12/19/build-personal-blog-by-lemp-wordpress/" class="article-date">
+  <time datetime="2020-12-19T04:35:00.000Z" itemprop="datePublished">2020-12-19</time>
+</a>  
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <p>在开始前，可以先准备好用于搭建个人博客的服务器和域名，或者使用虚拟机练习搭建。服务器选择1cpu 1g内存 1M带宽的最低配置即可，后续若有需要可再升级。购买服务器时请查看平台当前正在进行的活动，通常能以非常低廉的价格购买。系统镜像这里推荐ubuntu，安装软件相对比较简单，centos则需要一定的门槛。另外，选择国内的服务器搭建网站是需要备案的，如不过不打算备案可选择香港或海外的服务器。</p>
+<h3 id="mysql">MySql</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install mysql-server</span><br><span class="line">sudo mysql</span><br><span class="line"><span class="comment"># 创建wordpress数据库、账户、并授权。</span></span><br><span class="line">mysql&gt; create database wordpress;</span><br><span class="line">mysql&gt; create user username identified by <span class="string">&#x27;password&#x27;</span>;</span><br><span class="line">mysql&gt; grant all privileges on wordpress.* to username;</span><br><span class="line">mysql&gt; flush privileges;</span><br><span class="line">mysql&gt; <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+<p>将上面的username和password替换成你想要的用户名和密码，记住这个数据库和账户，之后需要写入到wordpress配置中。</p>
+<p>另外mysql-5.6以上版本默认启用一项叫做<code>performance-schema</code>的功能，性能提升有限但是会额外占用400M左右的内存，如果你的服务器内存小于1G可以禁用此功能。</p>
+<p>查看是否开启了<code>performance_schema</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sudo mysql</span><br><span class="line">mysql&gt; show variables like <span class="string">&#x27;performance_schema&#x27;</span>;</span><br><span class="line">+--------------------+-------+</span><br><span class="line">| Variable_name      | Value |</span><br><span class="line">+--------------------+-------+</span><br><span class="line">| performance_schema | ON    |</span><br><span class="line">+--------------------+-------+</span><br><span class="line">1 row <span class="keyword">in</span> <span class="built_in">set</span> (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+<p>可以通过配置文件启用or关闭此功能：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/mysql/my.cnf</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 在配置文件中新增以下两行后保存（ON or OFF）</span><br><span class="line">[mysqld]</span><br><span class="line">performance_schema&#x3D;OFF</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重启mysql</span></span><br><span class="line">sudo service mysql restart</span><br></pre></td></tr></table></figure>
+<h3 id="nginx">Nginx</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install nginx</span><br></pre></td></tr></table></figure>
+<p>此时用浏览器你的网站就可以看到Nginx的默认首页了。</p>
+<p>配置Gzip：https://kinsta.com/blog/enable-gzip-compression/</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/nginx/nginx.conf</span><br><span class="line"></span><br><span class="line">gzip on;</span><br><span class="line">gzip_vary on;</span><br><span class="line">gzip_proxied any;</span><br><span class="line">gzip_comp_level 6;</span><br><span class="line">gzip_min_length 256;</span><br><span class="line">gzip_buffers 16 8k;</span><br><span class="line">gzip_disable <span class="string">&quot;msie6&quot;</span>;</span><br><span class="line">gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者使用 sudo service nginx reload</span></span><br><span class="line">sudo nginx -s reload</span><br></pre></td></tr></table></figure>
+<h3 id="php">PHP</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install php-fpm</span><br><span class="line"><span class="comment"># 安装扩展，这些扩展都是wordpress必备或推荐的。</span></span><br><span class="line">sudo apt install php-mysql php-gd php-curl php-dom php-mbstring php-imagick php-zip php-gmp php-bcmath</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 7.4是目前最新版本，请替换成你安装的版本，尽量使用7.2以上的。</span></span><br><span class="line">sudo vim /etc/php/7.4/fpm/php.ini</span><br></pre></td></tr></table></figure>
+<p>修改php配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># Nginx + PHP CGI的一个可能的安全漏洞，https:&#x2F;&#x2F;www.laruence.com&#x2F;2010&#x2F;05&#x2F;20&#x2F;1495.html</span><br><span class="line">cgi.fix_pathinfo &#x3D; 0</span><br><span class="line"># 配置文件上传大小限制(上传媒体库，插件时)</span><br><span class="line">upload_max_filesize &#x3D; 128M</span><br><span class="line">post_max_size &#x3D; 128M</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重启fpm让配置生效</span></span><br><span class="line">sudo service php7.4-fpm restart</span><br></pre></td></tr></table></figure>
+<h3 id="phpmyadmin">phpMyAdmin</h3>
+<p>phpMyAdamin是数据库管理工具，某些情况下非常有用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载phpMyAdamin(到官网获取最新版本下载链接)</span></span><br><span class="line">wget https://files.phpmyadmin.net/phpMyAdmin/4.9.7/phpMyAdmin-4.9.7-all-languages.tar.gz</span><br><span class="line"><span class="comment"># 解压</span></span><br><span class="line">tar -xf phpMyAdmin-4.9.7-all-languages.tar.gz</span><br><span class="line"><span class="comment"># 移动到html目录</span></span><br><span class="line">sudo mv phpMyAdmin-4.9.7-all-languages /var/www/html/phpMyAdmin</span><br><span class="line"><span class="comment"># 修改目录归属</span></span><br><span class="line">sudo chown -R www-data:www-data /var/www/html/phpMyAdmin/</span><br></pre></td></tr></table></figure>
+<p>配置phpMyAdmin</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /var/www/html/phpMyAdmin</span><br><span class="line">sudo cp config.sample.inc.php config.inc.php</span><br><span class="line">sudo vim config.inc.php</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在这里输入32位以内的密码，用于cookie加密，增加安全性。不用记住，尽量设置长点。</span></span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;blowfish_secret&#x27;</span>] = <span class="string">&#x27;请随意输入32位以内密码&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>配置phpMyAdmin的Nginx服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进入sites-available目录</span></span><br><span class="line"><span class="built_in">cd</span> /etc/nginx/sites-available/</span><br><span class="line"><span class="comment"># 开始为phpMyAdmin配置Nginx服务</span></span><br><span class="line">sudo vim phpMyAdmin</span><br></pre></td></tr></table></figure>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">        <span class="comment"># 输入你希望的端口</span></span><br><span class="line">        <span class="attribute">listen</span> <span class="number">8100</span>;</span><br><span class="line">        <span class="attribute">listen</span> [::]:<span class="number">8100</span>;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">root</span> /var/www/html/phpMyAdmin;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">index</span> index.php;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">server_name</span> _;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">client_max_body_size</span> <span class="number">128m</span>;</span><br><span class="line">        <span class="attribute">client_body_buffer_size</span> <span class="number">128m</span>;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">location</span> / &#123;</span><br><span class="line">                <span class="attribute">try_files</span> $uri $uri/ =<span class="number">404</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">location</span> <span class="regexp">~ \.php$</span> &#123;</span><br><span class="line">                <span class="attribute">include</span> snippets/fastcgi-php.conf;</span><br><span class="line">                <span class="attribute">fastcgi_pass</span> unix:/var/run/php/php7.4-fpm.sock;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>让配置生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># sites-available 目录保存我们可用的服务配置，而sites-enabled目录则相当于一个开关。</span></span><br><span class="line"><span class="comment"># 将我们想开启的服务软链接到sites-enabled目录即可</span></span><br><span class="line">sudo ln -s /etc/nginx/sites-available/phpMyAdmin /etc/nginx/sites-enabled/phpMyAdmin</span><br><span class="line"><span class="comment"># 检查配置（每次修改配置后都推荐此命令检查）</span></span><br><span class="line">sudo nginx -t</span><br><span class="line">sudo nginx -s reload</span><br></pre></td></tr></table></figure>
+<p>现在登陆网站的8100端口（记得在服务器的安全组中放开对应端口）即可看到phpMyadmin的登陆界面，登陆时的账号密码就是前面MySql命令新建的。</p>
+<h3 id="phpmyadmin-高级功能可选">phpMyAdmin 高级功能（可选）</h3>
+<p>另外phpMyAdmin首页底部可能会提示“phpMyAdmin 高级功能尚未完全设置，部分功能未激活”，不知道所谓的高级功能究竟是什么，如果感兴趣的话可以尝试开启：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo mysql</span><br><span class="line"><span class="comment"># 执行sql：创建了一个phpmyadmin数据库并创建若干张表</span></span><br><span class="line">mysql&gt; <span class="built_in">source</span> /var/www/html/phpMyAdmin/sql/create_tabls.sql;</span><br><span class="line"><span class="comment"># 创建phpmyadmin数据库的管理账户，将pma和pmapass替换成你需要的</span></span><br><span class="line">mysql&gt; create user pma identified by <span class="string">&#x27;pmapass&#x27;</span>;</span><br><span class="line">mysql&gt; grant all privileges on phpmyadmin.* to pma;</span><br><span class="line">mysql&gt; flush privileges;</span><br><span class="line">mysql&gt; <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+<p>配置高级功能：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /var/www/html/phpMyAdmin/config.inc.php</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* User used to manipulate with storage */</span></span><br><span class="line"><span class="comment">// $cfg[&#x27;Servers&#x27;][$i][&#x27;controlhost&#x27;] = &#x27;&#x27;;</span></span><br><span class="line"><span class="comment">// $cfg[&#x27;Servers&#x27;][$i][&#x27;controlport&#x27;] = &#x27;&#x27;;</span></span><br><span class="line"><span class="comment"># 这里输入刚刚创建的用户名和密码</span></span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;controluser&#x27;</span>] = <span class="string">&#x27;pma&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;controlpass&#x27;</span>] = <span class="string">&#x27;pmapass&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Storage database and tables */</span></span><br><span class="line"><span class="comment"># 放开下面注释</span></span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;pmadb&#x27;</span>] = <span class="string">&#x27;phpmyadmin&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;bookmarktable&#x27;</span>] = <span class="string">&#x27;pma__bookmark&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;relation&#x27;</span>] = <span class="string">&#x27;pma__relation&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;table_info&#x27;</span>] = <span class="string">&#x27;pma__table_info&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;table_coords&#x27;</span>] = <span class="string">&#x27;pma__table_coords&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;pdf_pages&#x27;</span>] = <span class="string">&#x27;pma__pdf_pages&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;column_info&#x27;</span>] = <span class="string">&#x27;pma__column_info&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;history&#x27;</span>] = <span class="string">&#x27;pma__history&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;table_uiprefs&#x27;</span>] = <span class="string">&#x27;pma__table_uiprefs&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;tracking&#x27;</span>] = <span class="string">&#x27;pma__tracking&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;userconfig&#x27;</span>] = <span class="string">&#x27;pma__userconfig&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;recent&#x27;</span>] = <span class="string">&#x27;pma__recent&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;favorite&#x27;</span>] = <span class="string">&#x27;pma__favorite&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;users&#x27;</span>] = <span class="string">&#x27;pma__users&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;usergroups&#x27;</span>] = <span class="string">&#x27;pma__usergroups&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;navigationhiding&#x27;</span>] = <span class="string">&#x27;pma__navigationhiding&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;savedsearches&#x27;</span>] = <span class="string">&#x27;pma__savedsearches&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;central_columns&#x27;</span>] = <span class="string">&#x27;pma__central_columns&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;designer_settings&#x27;</span>] = <span class="string">&#x27;pma__designer_settings&#x27;</span>;</span><br><span class="line"><span class="variable">$cfg</span>[<span class="string">&#x27;Servers&#x27;</span>][<span class="variable">$i</span>][<span class="string">&#x27;export_templates&#x27;</span>] = <span class="string">&#x27;pma__export_templates&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>重新登陆phpmyadmin即可。</p>
+<h3 id="wordpress">Wordpress</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载wordpress中文版</span></span><br><span class="line">wget https://cn.wordpress.org/latest-zh_CN.tar.gz</span><br><span class="line"><span class="comment"># 解压</span></span><br><span class="line">tar -xf latest-zh_CN.tar.gz</span><br><span class="line"><span class="comment"># 移动到html目录</span></span><br><span class="line">sudo mv wordpress /var/www/html/</span><br><span class="line"><span class="comment"># 更改wordpress的owner和group，与nginx相同（www-data）</span></span><br><span class="line"><span class="comment"># 这是为了避免日后出现各种各样的权限问题</span></span><br><span class="line">sudo chown -R www-data:www-data /var/www/html/wordpress</span><br></pre></td></tr></table></figure>
+<p>配置wordpress的Nginx服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /etc/nginx/sites-available/</span><br><span class="line">sudo vim wordpress</span><br></pre></td></tr></table></figure>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># https://www.digitalocean.com/community/tutorials/how-to-implement-browser-caching-with-nginx-s-header-module-on-ubuntu-16-04</span></span><br><span class="line"><span class="comment"># Expires map</span></span><br><span class="line"><span class="attribute">map</span> $sent_http_content_type $expires &#123;</span><br><span class="line">        <span class="attribute">default</span> <span class="literal">off</span>;</span><br><span class="line">        text/html epoch;</span><br><span class="line">        text/css 30d;</span><br><span class="line">        application/javascript 30d;</span><br><span class="line">        ~image/ max;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span> <span class="number">80</span> default_server;</span><br><span class="line">        <span class="attribute">listen</span> [::]:<span class="number">80</span> default_server;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 增加上传文件限制大小</span></span><br><span class="line">        <span class="attribute">client_max_body_size</span> <span class="number">128m</span>;</span><br><span class="line">        <span class="attribute">client_body_buffer_size</span> <span class="number">128m</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 缓存头</span></span><br><span class="line">        <span class="attribute">expires</span> $expires;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">root</span> /var/www/html/wordpress;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">index</span> index.php;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 输入你的域名</span></span><br><span class="line">        <span class="attribute">server_name</span> yourdomain.com www.yourdomain.com;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">location</span> / &#123;</span><br><span class="line">                <span class="comment"># 伪静态</span></span><br><span class="line">                <span class="attribute">try_files</span> $uri $uri/ /index.php?$args;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">location</span> <span class="regexp">~ \.php$</span> &#123;</span><br><span class="line">                <span class="attribute">include</span> snippets/fastcgi-php.conf;</span><br><span class="line">                <span class="attribute">fastcgi_pass</span> unix:/var/run/php/php7.4-fpm.sock;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo ln -s /etc/nginx/sites-available/wordpress /etc/nginx/sites-enabled/wordpress</span><br><span class="line"><span class="comment"># 移除默认default配置（就是安装nginx后看到的默认首页）</span></span><br><span class="line">sudo rm /etc/nginx/sites-enabled/default</span><br><span class="line">sudo nginx -t</span><br><span class="line">sudo nginx -s reload</span><br></pre></td></tr></table></figure>
+<p>现在只需要登录你的网站，即可根据wordpress向导完成后续操作。</p>
+<h3 id="配置ssl证书可选">配置SSL证书（可选）</h3>
+<p>各大平台都有提供免费证书，如果没有可以到 https://freessl.cn/ 这个网站申请，最终你能获得名为xxx.crt, xxx.key 的证书文件和密钥。</p>
+<p>将证书和密钥上传到服务器，并放置在<code>/etc/nginx/ssl</code>目录，目录本身不存在需要创建。也可以放到<code>/etc/ssl</code>目录，或者其他目录，没有规定。</p>
+<p>配置ssl</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo vim /etc/nginx/sites-available/wordpress</span><br></pre></td></tr></table></figure>
+<p>添加以下规则：（原来的80端口改成443端口，然后重新声明一个80端口的服务重定向到443端口的服务）</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span> <span class="number">80</span> default_server;</span><br><span class="line">        <span class="attribute">listen</span> [::]:<span class="number">80</span> default_server;</span><br><span class="line">        <span class="attribute">server_name</span> yourdomain.com www.yourdomain.com;</span><br><span class="line">        <span class="attribute">return</span> <span class="number">301</span> https://$server_name$request_uri;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span> <span class="number">443</span> ssl http2;</span><br><span class="line">        <span class="attribute">listen</span> [::]:<span class="number">443</span> http2;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">ssl_certificate</span> /etc/nginx/ssl/xxx.crt;</span><br><span class="line">        <span class="attribute">ssl_certificate_key</span> /etc/nginx/ssl/xxx.key;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">add_header</span> Strict-Transport-Security <span class="string">&quot;max-age=31536000&quot;</span>;</span><br><span class="line">        <span class="attribute">ssl_session_cache</span> shared:SSL:<span class="number">20m</span>;</span><br><span class="line">        <span class="attribute">ssl_session_timeout</span> <span class="number">10m</span>;</span><br><span class="line">        <span class="attribute">ssl_protocols</span> TLSv1 TLSv1.<span class="number">1</span> TLSv1.<span class="number">2</span>;</span><br><span class="line">        <span class="attribute">ssl_prefer_server_ciphers</span> <span class="literal">on</span>;</span><br><span class="line">        <span class="attribute">ssl_ciphers</span> <span class="string">&#x27;ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5&#x27;</span>;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo nginx -t</span><br><span class="line">sudo nginx -s reload</span><br></pre></td></tr></table></figure>
+<p>现在证书已部署，访问主页可能出现问题，需要到wordpress后台的<code>设置-常规</code> 配置wordpress地址和站点地址的前缀为https。</p>
+<h3 id="文件权限的注意事项">文件权限的注意事项</h3>
+<p>wordpress是部署Nginx上的，用户组是www-data。所以前面教程中就有了更改wordpress目录用户组的操作 <code>sudo chown -R www-data:www-data wordpress</code>，否则wordpress后台会出现很多权限导致的问题。</p>
+<p>另外有的做法是将wordpress的读写权限放开给所有用户<code>chmod 777</code>，本质上和修改用户组没什么区别，但是前者更安全。</p>
+<h3 id="推荐插件">推荐插件</h3>
+<ul>
+<li>WP Mail SMTP by WPForms，邮件服务。</li>
+<li>WP Statistics，统计插件，可配合Sakura主题使用。</li>
+<li>UpdraftPlus，备份。推荐只备份数据库和上传目录。</li>
+<li>WP-Optimize， 推荐只使用压缩和缓存功能，禁用图片压缩（主要是不起作用）和数据库清理。</li>
+<li>WP Githuber MD，markdown编辑器。</li>
+<li>Wordfence Security，安全插件。</li>
+<li>Akismet Anti-Spam，垃圾评论过滤。</li>
+<li>AMP，生成AMP页面。</li>
+<li>Rank Math SEO，搜索引擎优化。</li>
+</ul>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2020/12/27/algs4-union-find/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            算法4 并查集
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/12/18/bye-bye-2020/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Bye bye，2020</div>
+      </a>
+    
+  </nav>
+
+  
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer" style="font-size: 14px;">
+    <ul>
+      <li>
+        &copy;
+        2020-2021
+         Aitsuki
+         <a href="https://beian.miit.gov.cn/" target="_black" rel="nofollow">粤ICP备2020133133</a>
+      </li>
+    </ul>
+    <ul>
+      
+      <li>
+          <a target="_blank" rel="nofollow" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030502006706" style="display: inline-block;padding-left: 22px;background: url(https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/beian.png) no-repeat">粤公网安备44030502006706号</a>
+      </li>
+        
+    </ul>
+    <!-- <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul> -->
+    <!-- <ul>
+      <li> -->
+        <!-- cnzz统计 -->
+        <!-- 
+      </li>
+    </ul> -->
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/avatar.png" alt="Aitsuki"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i></p>
+  <div class="reward-box">
+    
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    collapseDepth: 6,
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+<!-- CanvasBackground -->
+
+
+    
+  </div>
+</body>
+
+</html>

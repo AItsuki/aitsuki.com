@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="算法,Android,js" />
+   
+  <meta name="description" content="Aitsuki的技术博客" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    算法4 归并排序 |  Aitsuki
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="Aitsuki" type="application/atom+xml">
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-2021-01-12 归并排序"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  算法4 归并排序
+</h1>
+ 
+
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/01/12/algs4-mergesort/" class="article-date">
+  <time datetime="2021-01-12T15:50:00.000Z" itemprop="datePublished">2021-01-12</time>
+</a>  
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <p>归并排序是我们学习的第一个使用分治法实现的排序算法，它也是唯一一个时间复杂度为<code>NlogN</code>的常用的稳定排序算法，有比它效率更高的排序算法，但却不是稳定的。</p>
+<p>分治法是将一个大的问题分成若干个规模较小的相同问题，从而降低问题的复杂度，它是很多高效算法的基础，例如归并排序、快速排序、快速傅里叶变换等。</p>
+<p>归并排序将数组平分成若干个子数组，然后将再将小数组归并回一个完整的数组，而排序发生在归并过程中。</p>
+<blockquote>
+<p>这里的平分数组不是真正的拆分成小数组，而是一个数组当成多个子数组看待。</p>
+</blockquote>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210106024413.png"></p>
+<h2 id="切分数组">切分数组</h2>
+<p>归并排序有两种切分数组的方式，分别是<strong>使用递归的自顶向下</strong>的方式和<strong>使用循环的自底向上</strong>的方式。</p>
+<p><strong>自顶向下</strong>：使用递归的方式将数组平分成两个子数组，它能均匀的切分数组，保证左右两边的子数组长度相同，最终切分成长度为1的N个子数组。在递归收拢的阶段对子数组进行归并操作。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210121224858.png"></p>
+<p><strong>自底向上</strong>：这种方式一开始就认为数组是以切分好的，直接把数组看成N个长度为1的子数组，然后直接对子数组数组进行归并操作。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210121230032.png"></p>
+<h2 id="归并数组">归并数组</h2>
+<p>首先我们需要先实现归并的方法，给定两个已经排序的子数组，分别是<code>lo~mid</code> 和 <code>mid+1 ~ hi</code>，将他们归并成一个有序的数组。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210106024718.png"></p>
+<p>需要借助一个辅助才能完成归并操作：首先将数组拷贝辅助数组，然后比较两个有序的子数组，按大小顺序一个一个的拷贝回原数组，操作如下图所示：</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/2021-1-7merge.gif"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> mid, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> k = lo; k &lt;= hi; k++) aux[k] = a[k];</span><br><span class="line">    <span class="keyword">int</span> i = lo, j = mid + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> k = lo; k &lt;= hi; k++) {</span><br><span class="line">        <span class="comment">// 左边的子数组已用完，无须比较，直接复制右边的元素</span></span><br><span class="line">        <span class="keyword">if</span> (i &gt; mid) a[k] = aux[j++];</span><br><span class="line">        <span class="comment">// 右边的数组已用完，无须比较，直接复制左边的元素</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (j &gt; hi) a[k] = aux[i++];</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (less(aux[j], aux[i])) a[k] = aux[j++];</span><br><span class="line">        <span class="keyword">else</span> a[k] = aux[i++];</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>需要留意的是辅助数组我们从外部传入，而不是方法内部创建，否则因为新建数组的开销会导致算法整体效率变低。</p>
+<p>归并操作是从长度为1的最小子数组开始的，两个长度为1的子数组可以归并成一个长度为2的有序子数组，再将长度为2的有序子数组归并成长度为4的有序子数组，最终能将数组完全排序，这就是分治法的核心思想。</p>
+<h2 id="自顶向下的归并排序">自顶向下的归并排序</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> mid, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="comment">// as before</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">if</span> (hi &lt;= lo) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;</span><br><span class="line">    sort(a, aux, lo, mid);</span><br><span class="line">    sort(a, aux, mid + <span class="number">1</span>, hi);</span><br><span class="line">    merge(a, aux, lo, mid, hi);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a)</span> </span>{</span><br><span class="line">    Comparable[] aux = <span class="keyword">new</span> Comparable[a.length];</span><br><span class="line">    sort(a, aux, <span class="number">0</span>, a.length - <span class="number">1</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>merge方法的调用跟踪如下图所示：</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210107151657.png"></p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/2021-1-7mergesort.gif"></p>
+<p><strong>性能分析：</strong></p>
+<p>递归的切分数组，因为每次切分后数组长度减半，所以一共会切分<code>logN</code>次，即递归层数为lgN层。所以有以下结论：</p>
+<p>第k层的子数组个数为<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: 0" xmlns="http://www.w3.org/2000/svg" width="2.078ex" height="1.932ex" role="img" focusable="false" viewBox="0 -853.7 918.4 853.7"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="msup"><g data-mml-node="mn"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g><g data-mml-node="mi" transform="translate(500, 363) scale(0.707)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g></g></g></svg></mjx-container></span>，每个子数组的长度为 <span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.566ex" xmlns="http://www.w3.org/2000/svg" width="5.218ex" height="2.497ex" role="img" focusable="false" viewBox="0 -853.7 2306.4 1103.7"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D441" d="M234 637Q231 637 226 637Q201 637 196 638T191 649Q191 676 202 682Q204 683 299 683Q376 683 387 683T401 677Q612 181 616 168L670 381Q723 592 723 606Q723 633 659 637Q635 637 635 648Q635 650 637 660Q641 676 643 679T653 683Q656 683 684 682T767 680Q817 680 843 681T873 682Q888 682 888 672Q888 650 880 642Q878 637 858 637Q787 633 769 597L620 7Q618 0 599 0Q585 0 582 2Q579 5 453 305L326 604L261 344Q196 88 196 79Q201 46 268 46H278Q284 41 284 38T282 19Q278 6 272 0H259Q228 2 151 2Q123 2 100 2T63 2T46 1Q31 1 31 10Q31 14 34 26T39 40Q41 46 62 46Q130 49 150 85Q154 91 221 362L289 634Q287 635 234 637Z"></path></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(888, 0)"><g data-mml-node="mo"><path data-c="2F" d="M423 750Q432 750 438 744T444 730Q444 725 271 248T92 -240Q85 -250 75 -250Q68 -250 62 -245T56 -231Q56 -221 230 257T407 740Q411 750 423 750Z"></path></g></g><g data-mml-node="msup" transform="translate(1388, 0)"><g data-mml-node="mn"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g><g data-mml-node="mi" transform="translate(500, 363) scale(0.707)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g></g></g></svg></mjx-container></span>，即第k层最多需要做<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.566ex" xmlns="http://www.w3.org/2000/svg" width="16.219ex" height="2.497ex" role="img" focusable="false" viewBox="0 -853.7 7168.8 1103.7"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="msup"><g data-mml-node="mn"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g><g data-mml-node="mi" transform="translate(500, 363) scale(0.707)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g><g data-mml-node="mo" transform="translate(1140.6, 0)"><path data-c="2217" d="M229 286Q216 420 216 436Q216 454 240 464Q241 464 245 464T251 465Q263 464 273 456T283 436Q283 419 277 356T270 286L328 328Q384 369 389 372T399 375Q412 375 423 365T435 338Q435 325 425 315Q420 312 357 282T289 250L355 219L425 184Q434 175 434 161Q434 146 425 136T401 125Q393 125 383 131T328 171L270 213Q283 79 283 63Q283 53 276 44T250 35Q231 35 224 44T216 63Q216 80 222 143T229 213L171 171Q115 130 110 127Q106 124 100 124Q87 124 76 134T64 161Q64 166 64 169T67 175T72 181T81 188T94 195T113 204T138 215T170 230T210 250L74 315Q65 324 65 338Q65 353 74 363T98 374Q106 374 116 368T171 328L229 286Z"></path></g><g data-mml-node="mo" transform="translate(1862.8, 0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mi" transform="translate(2251.8, 0)"><path data-c="1D441" d="M234 637Q231 637 226 637Q201 637 196 638T191 649Q191 676 202 682Q204 683 299 683Q376 683 387 683T401 677Q612 181 616 168L670 381Q723 592 723 606Q723 633 659 637Q635 637 635 648Q635 650 637 660Q641 676 643 679T653 683Q656 683 684 682T767 680Q817 680 843 681T873 682Q888 682 888 672Q888 650 880 642Q878 637 858 637Q787 633 769 597L620 7Q618 0 599 0Q585 0 582 2Q579 5 453 305L326 604L261 344Q196 88 196 79Q201 46 268 46H278Q284 41 284 38T282 19Q278 6 272 0H259Q228 2 151 2Q123 2 100 2T63 2T46 1Q31 1 31 10Q31 14 34 26T39 40Q41 46 62 46Q130 49 150 85Q154 91 221 362L289 634Q287 635 234 637Z"></path></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(3139.8, 0)"><g data-mml-node="mo"><path data-c="2F" d="M423 750Q432 750 438 744T444 730Q444 725 271 248T92 -240Q85 -250 75 -250Q68 -250 62 -245T56 -231Q56 -221 230 257T407 740Q411 750 423 750Z"></path></g></g><g data-mml-node="msup" transform="translate(3639.8, 0)"><g data-mml-node="mn"><path data-c="32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path></g><g data-mml-node="mi" transform="translate(500, 363) scale(0.707)"><path data-c="1D458" d="M121 647Q121 657 125 670T137 683Q138 683 209 688T282 694Q294 694 294 686Q294 679 244 477Q194 279 194 272Q213 282 223 291Q247 309 292 354T362 415Q402 442 438 442Q468 442 485 423T503 369Q503 344 496 327T477 302T456 291T438 288Q418 288 406 299T394 328Q394 353 410 369T442 390L458 393Q446 405 434 405H430Q398 402 367 380T294 316T228 255Q230 254 243 252T267 246T293 238T320 224T342 206T359 180T365 147Q365 130 360 106T354 66Q354 26 381 26Q429 26 459 145Q461 153 479 153H483Q499 153 499 144Q499 139 496 130Q455 -11 378 -11Q333 -11 305 15T277 90Q277 108 280 121T283 145Q283 167 269 183T234 206T200 217T182 220H180Q168 178 159 139T145 81T136 44T129 20T122 7T111 -2Q98 -11 83 -11Q66 -11 57 -1T48 16Q48 26 85 176T158 471L195 616Q196 629 188 632T149 637H144Q134 637 131 637T124 640T121 647Z"></path></g></g><g data-mml-node="mo" transform="translate(4558.2, 0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="mo" transform="translate(5225, 0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mi" transform="translate(6280.8, 0)"><path data-c="1D441" d="M234 637Q231 637 226 637Q201 637 196 638T191 649Q191 676 202 682Q204 683 299 683Q376 683 387 683T401 677Q612 181 616 168L670 381Q723 592 723 606Q723 633 659 637Q635 637 635 648Q635 650 637 660Q641 676 643 679T653 683Q656 683 684 682T767 680Q817 680 843 681T873 682Q888 682 888 672Q888 650 880 642Q878 637 858 637Q787 633 769 597L620 7Q618 0 599 0Q585 0 582 2Q579 5 453 305L326 604L261 344Q196 88 196 79Q201 46 268 46H278Q284 41 284 38T282 19Q278 6 272 0H259Q228 2 151 2Q123 2 100 2T63 2T46 1Q31 1 31 10Q31 14 34 26T39 40Q41 46 62 46Q130 49 150 85Q154 91 221 362L289 634Q287 635 234 637Z"></path></g></g></g></svg></mjx-container></span>次比较。</p>
+<p>一共有<code>logN</code>层，即一共需要<code>NlogN</code>次比较，所以<strong>归并排序的时间复杂度是线性对数级</strong>。</p>
+<blockquote>
+<p>从代码和排序动画可以分析出，归并排序的性能几乎不受数组初始顺序的影响，无论什么初始顺序归并排序都能在<code>NlogN</code>比例的时间内完成。</p>
+</blockquote>
+<p><strong>稳定性分析：</strong></p>
+<p><strong>归并排序是稳定的排序算法</strong>，它不会打乱数组已经有序的部分。从<code>merge()</code>方法的<code>less(aux[j], aux[i])</code>就可以看出<code>aux[j] &lt; aux[i]</code>时将右半边的子数组拷贝到原数组，而相等或者大于的情况下会优先拷贝左半边子数组的元素，这将不会改变原数组的有序部分。</p>
+<p>所以<code>less()</code>方法中的参数顺序是不能变的，会打破归并排序的稳定性，这一点要非常的<strong>注意</strong>！</p>
+<h2 id="自底向上的归并排序">自底向上的归并排序</h2>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a)</span> </span>{</span><br><span class="line">    Comparable[] aux = <span class="keyword">new</span> Comparable[a.length];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> sz = <span class="number">1</span>; sz &lt; a.length; sz += sz) { <span class="comment">// sz = 1, 2, 4, 8, 16.....</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> lo = <span class="number">0</span>; lo &lt; a.length - sz; lo += sz + sz) {</span><br><span class="line">            <span class="comment">//            lo     mid            high（注意角标越界）</span></span><br><span class="line">            merge(a, aux, lo, lo + sz - <span class="number">1</span>, Math.min(lo + sz + sz - <span class="number">1</span>, a.length - <span class="number">1</span>));</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>merge方法的调用跟踪如下图所示：</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210110054023.png"></p>
+<p><strong>性能分析：</strong></p>
+<p>外循环的sz成倍递增，所以外循环的循环次数为<code>logN</code>，而内循环最大循环次数为N，所以很容易得出自底向上的归并排序的增长数量级为NlgN。</p>
+<h2 id="归并排序的改进">归并排序的改进</h2>
+<p>上面归并排序的性能已经非常优秀了，但是我们还能继续进行一些小优化，最终能让归并排序的性能再提升20%到30%。</p>
+<p>优化以自顶向下的归并排序作为优化对象，也可以应用到自底向上的归并排序，它们的优化方式是一样的（除了“改进3”），所以我不会贴两份基本相同的代码。</p>
+<h3 id="改进1小规模子数组使用插入排序">改进1：小规模子数组使用插入排序</h3>
+<p>递归会一直切分数组直到子数组长度为1，使得小规模问题中方法的调用过于频繁，所以使用插入排序处理小规模的子数组会更加高效。例如子数组长度小于7（7~15之间的任意整数都是不错的选择）时不继续切分数组，一般可以将归并排序的运行时间缩短10-15% 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">if</span> (hi - lo + <span class="number">1</span> &lt;= <span class="number">7</span>) {</span><br><span class="line">        insertionSort(a, lo, hi);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;</span><br><span class="line">    sort(a, aux, lo, mid);</span><br><span class="line">    sort(a, aux, mid + <span class="number">1</span>, hi);</span><br><span class="line">    merge(a, aux, lo, mid, hi);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<h3 id="改进2检测数组是否已经有序">改进2：检测数组是否已经有序</h3>
+<p>可以添加一个判断条件，如果<code>a[mid]</code> 小于等于 <code>a[mid + 1]</code>，即表明子数组已经是有序的并跳过merge方法，这个改动不影响排序的递归调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">if</span> (hi &lt;= lo) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;</span><br><span class="line">    sort(a, aux, lo, mid);</span><br><span class="line">    sort(a, aux, mid + <span class="number">1</span>, hi);</span><br><span class="line">    <span class="keyword">if</span> (less(a[mid + <span class="number">1</span>], a[mid]))</span><br><span class="line">        merge(a, aux, lo, mid, hi);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<h3 id="改进3不将元素复制到辅助数组">改进3：不将元素复制到辅助数组</h3>
+<p>这个想法是让a和aux在每次递归时互换身份，互相作为对方的辅助数组，省去了每次merge都要复制数组的操作，代价则是需要预先将元素组拷贝到辅助数组。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a)</span> </span>{</span><br><span class="line">    Comparable[] aux = a.clone();</span><br><span class="line">    sort(a, aux, <span class="number">0</span>, a.length - <span class="number">1</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">if</span> (hi &lt;= lo) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;</span><br><span class="line">    <span class="comment">// 交换身份</span></span><br><span class="line">    sort(aux, a, lo, mid);</span><br><span class="line">    sort(aux, a, mid + <span class="number">1</span>, hi);</span><br><span class="line">    merge(a, aux, lo, mid, hi);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> mid, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="comment">// for (int k = lo; k &lt;= hi; k++) aux[k] = a[k]; // 节省了复制数组的成本</span></span><br><span class="line">    <span class="keyword">int</span> i = lo, j = mid + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> k = lo; k &lt;= hi; k++) {</span><br><span class="line">        <span class="keyword">if</span> (i &gt; mid) a[k] = aux[j++];</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (j &gt; hi) a[k] = aux[i++];</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (less(aux[j], aux[i])) a[k] = aux[j++];</span><br><span class="line">        <span class="keyword">else</span> a[k] = aux[i++];</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>对于N个元素的归并排序，递归的调用层数为<code>logN</code>层，我们在每一层递归中切分时交换身份，而在归并时又交换回来。每次归并时，都正好使用了另一个数组中未排定的部分作为参考，归并到另一个数组中。而且因为递归的特性（栈），最先入栈时是以<code>(a, aux)</code>的顺序入栈，那么出栈时必定也是以<code>(a, aux)</code>的顺序出栈，所以无论有多少层递归调用都不影响它的返回顺序。</p>
+<p>例如，下面是长度为8的数组的递归调用过程，其中序号表示merge方法的执行顺序，用hash值表示数组。即使长度为16的数组，也只是在“树”的最下方新增一层递归，它们的参数的返回顺序在递归调用时就已经决定了。我们只要能保证第一层调用时的逻辑是对的，那么整个递归过程就是对的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">a[]:0x7a</span><br><span class="line">b[]:0x8b</span><br><span class="line">                 0x7a,0x8b</span><br><span class="line">                     7</span><br><span class="line">      0x8b,0x7a              0x8b,0x7a</span><br><span class="line">          3                      6</span><br><span class="line">0x7a,0x8b  0x7a,0x8b     0x7a,0x8b 0x7a,0x8b</span><br><span class="line">  1           2               4        5</span><br></pre></td></tr></table></figure>
+<h3 id="同时使用所有改进">同时使用所有改进</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a)</span> </span>{</span><br><span class="line">    Comparable[] aux = a.clone();</span><br><span class="line">    sort(a, aux, <span class="number">0</span>, a.length - <span class="number">1</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sort</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">if</span> (hi - lo + <span class="number">1</span> &lt;= <span class="number">7</span>) {</span><br><span class="line">        insertionSort(a, lo, hi);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;</span><br><span class="line">    sort(aux, a, lo, mid);</span><br><span class="line">    sort(aux, a, mid + <span class="number">1</span>, hi);</span><br><span class="line">    <span class="keyword">if</span> (less(aux[mid + <span class="number">1</span>], aux[mid])) {</span><br><span class="line">        merge(a, aux, lo, mid, hi);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        <span class="comment">// 跳过合并时，需要将已经有序的部分拷贝到另一个数组</span></span><br><span class="line">        System.arraycopy(aux, lo, a, lo, hi - lo + <span class="number">1</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(Comparable[] a, Comparable[] aux, <span class="keyword">int</span> lo, <span class="keyword">int</span> mid, <span class="keyword">int</span> hi)</span> </span>{</span><br><span class="line">    <span class="keyword">int</span> i = lo, j = mid + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> k = lo; k &lt;= hi; k++) {</span><br><span class="line">        <span class="keyword">if</span> (i &gt; mid) a[k] = aux[j++];</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (j &gt; hi) a[k] = aux[i++];</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (less(aux[j], aux[i])) a[k] = aux[j++];</span><br><span class="line">        <span class="keyword">else</span> a[k] = aux[i++];</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<h2 id="coursera作业collinear-points">Coursera作业（Collinear points）</h2>
+<p>下面代码在<a target="_blank" rel="noopener" href="https://coursera.cs.princeton.edu/algs4/assignments/collinear/specification.php">Coursera作业</a>上的得分为100。</p>
+<p>CollinearPoints即共线点，在二维平面上拥有众多的点，位于同一条直线上的若干个点称为共线点，我们需要做的就是利用排序算法快速的找出所有包含至少4个点以上的线段，更具体的描述可到作业地址上查看并下载相关项目。</p>
+<p><img src="https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/20210112231601.png"></p>
+<p>正确的解决方式是从平面上最低的点开始遍历，这样只需要往一个方向查找即可，所以一开始需要对这些点从低到高进行排序。</p>
+<p>若多个点能组成一条线段，则这几个点之间的斜率相同，即<code>(y1 - y0)/(x1 - x0) = (y2 - y0)/(x2 - x0)</code>。</p>
+<p>假设我们现在遍历到p点，可以将其他点按照与p点间的斜率进行第二次排序，这样所有斜率相同的点都会被排在一起，且它是最长线段。假设我们使用的是稳定排序算法，那么共线点必然也是按顺序排序的，即<code>p &lt; q &lt; r &lt; s &lt; t</code> 。</p>
+<p>需要注意的是，使用这种方式我们很可能找到重复且错误的线段，例如使用q点进行斜率排序后，我们将得到一条这样的线段：<code>q-p-r-s-t</code>。</p>
+<p>为了避免出现这种情况，我们只需要判断这条线段的第二个点是否大于第一个点即可，很显然<code>q-p-r-s-t</code>并不是。</p>
+<p>点和线段的定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Point</span> <span class="keyword">implements</span> <span class="title">Comparable</span>&lt;<span class="title">Point</span>&gt; </span>{</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> x;     <span class="comment">// x-coordinate of this point</span></span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> y;     <span class="comment">// y-coordinate of this point</span></span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">Point</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>{</span><br><span class="line">       <span class="keyword">this</span>.x = x;</span><br><span class="line">       <span class="keyword">this</span>.y = y;</span><br><span class="line">   }</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>{</span><br><span class="line">       StdDraw.point(x, y);</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">drawTo</span><span class="params">(Point that)</span> </span>{</span><br><span class="line">       StdDraw.line(<span class="keyword">this</span>.x, <span class="keyword">this</span>.y, that.x, that.y);</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">slopeTo</span><span class="params">(Point that)</span> </span>{</span><br><span class="line">       <span class="keyword">if</span> (x == that.x &amp;&amp; y == that.y) <span class="keyword">return</span> Double.NEGATIVE_INFINITY;</span><br><span class="line">       <span class="keyword">double</span> dy = that.y - y;</span><br><span class="line">       <span class="keyword">double</span> dx = that.x - x;</span><br><span class="line">       <span class="keyword">if</span> (dx == <span class="number">0</span>) <span class="keyword">return</span> Double.POSITIVE_INFINITY;</span><br><span class="line">       <span class="keyword">if</span> (dy == <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">       <span class="keyword">return</span> dy / dx;</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(Point that)</span> </span>{</span><br><span class="line">       <span class="keyword">if</span> (y &lt; that.y) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">       <span class="keyword">else</span> <span class="keyword">if</span> (y == that.y) <span class="keyword">return</span> Integer.compare(x, that.x);</span><br><span class="line">       <span class="keyword">else</span> <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Comparator&lt;Point&gt; <span class="title">slopeOrder</span><span class="params">()</span> </span>{</span><br><span class="line">       <span class="keyword">return</span> (o1, o2) -&gt; {</span><br><span class="line">           <span class="keyword">double</span> slope1 = slopeTo(o1);</span><br><span class="line">           <span class="keyword">double</span> slope2 = slopeTo(o2);</span><br><span class="line">           <span class="keyword">return</span> Double.compare(slope1, slope2);</span><br><span class="line">       };</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>{</span><br><span class="line">       <span class="keyword">return</span> <span class="string">"("</span> + x + <span class="string">", "</span> + y + <span class="string">")"</span>;</span><br><span class="line">   }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LineSegment</span> </span>{</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">final</span> Point p;   <span class="comment">// one endpoint of this line segment</span></span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">final</span> Point q;   <span class="comment">// the other endpoint of this line segment</span></span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">LineSegment</span><span class="params">(Point p, Point q)</span> </span>{</span><br><span class="line">       <span class="keyword">if</span> (p == <span class="keyword">null</span> || q == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">"argument is null"</span>);</span><br><span class="line">       <span class="keyword">this</span>.p = p;</span><br><span class="line">       <span class="keyword">this</span>.q = q;</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>{</span><br><span class="line">       p.drawTo(q);</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>{</span><br><span class="line">       <span class="keyword">return</span> p + <span class="string">" -&gt; "</span> + q;</span><br><span class="line">   }</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> </span>{</span><br><span class="line">       <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();</span><br><span class="line">   }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>利用排序算法快速找出所有共线点组成的线段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FastCollinearPoints</span> </span>{</span><br><span class="line"></span><br><span class="line">   <span class="keyword">private</span> ArrayList&lt;LineSegment&gt; segments = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">FastCollinearPoints</span><span class="params">(Point[] data)</span> </span>{</span><br><span class="line">       <span class="comment">// check data</span></span><br><span class="line">       <span class="keyword">if</span> (data == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"array is null"</span>);</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; data.length; i++) {</span><br><span class="line">           <span class="keyword">if</span> (data[i] == <span class="keyword">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"has null item"</span>);</span><br><span class="line">       }</span><br><span class="line">       Point[] sortedPoints = <span class="keyword">new</span> Point[data.length];</span><br><span class="line">       System.arraycopy(data, <span class="number">0</span>, sortedPoints, <span class="number">0</span>, data.length);</span><br><span class="line">       MergeX.sort(sortedPoints);</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sortedPoints.length - <span class="number">1</span>; i++) {</span><br><span class="line">           <span class="keyword">if</span> (sortedPoints[i].compareTo(sortedPoints[i + <span class="number">1</span>]) == <span class="number">0</span>) {</span><br><span class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"has same item."</span>);</span><br><span class="line">           }</span><br><span class="line">       }</span><br><span class="line"></span><br><span class="line">       Point[] points = <span class="keyword">new</span> Point[data.length];</span><br><span class="line">       <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; points.length - <span class="number">1</span>; i++) {</span><br><span class="line">           <span class="comment">// MergeX.sort(points); // 重新拷贝一份有序数组性能要优于重排序</span></span><br><span class="line">           System.arraycopy(sortedPoints, <span class="number">0</span>, points, <span class="number">0</span>, points.length);</span><br><span class="line">           MergeX.sort(points, points[i].slopeOrder());</span><br><span class="line">           Point p = points[<span class="number">0</span>];</span><br><span class="line">           Point q = p;</span><br><span class="line">           <span class="keyword">int</span> count = <span class="number">1</span>;</span><br><span class="line">           <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; points.length - <span class="number">1</span>; j++) {</span><br><span class="line">               <span class="keyword">if</span> (points[j].slopeTo(p) == points[j + <span class="number">1</span>].slopeTo(p)) {</span><br><span class="line">                   count++;</span><br><span class="line">                   <span class="keyword">if</span> (count == <span class="number">2</span>) {</span><br><span class="line">                       q = points[j];</span><br><span class="line">                       count++;</span><br><span class="line">                   }</span><br><span class="line">                   <span class="keyword">else</span> <span class="keyword">if</span> (count &gt;= <span class="number">4</span> &amp;&amp; j == points.length - <span class="number">2</span> &amp;&amp; q.compareTo(p) &gt; <span class="number">0</span>) {</span><br><span class="line">                       segments.add(<span class="keyword">new</span> LineSegment(p, points[j + <span class="number">1</span>]));</span><br><span class="line">                   }</span><br><span class="line">               }</span><br><span class="line">               <span class="keyword">else</span> <span class="keyword">if</span> (count &gt;= <span class="number">4</span> &amp;&amp; q.compareTo(p) &gt; <span class="number">0</span>) {</span><br><span class="line">                   segments.add(<span class="keyword">new</span> LineSegment(p, points[j]));</span><br><span class="line">                   count = <span class="number">1</span>;</span><br><span class="line">               }</span><br><span class="line">               <span class="keyword">else</span> {</span><br><span class="line">                   count = <span class="number">1</span>;</span><br><span class="line">               }</span><br><span class="line">           }</span><br><span class="line">       }</span><br><span class="line">   }</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">numberOfSegments</span><span class="params">()</span> </span>{</span><br><span class="line">       <span class="keyword">return</span> segments.size();</span><br><span class="line">   }</span><br><span class="line"></span><br><span class="line">   <span class="keyword">public</span> LineSegment[] segments() {</span><br><span class="line">       <span class="keyword">return</span> segments.toArray(<span class="keyword">new</span> LineSegment[<span class="number">0</span>]);</span><br><span class="line">   }</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/01/14/algs4-quicksort/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            算法4 快速排序
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/01/04/algs4-elementary-sorts/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">算法4 初级排序算法</div>
+      </a>
+    
+  </nav>
+
+  
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer" style="font-size: 14px;">
+    <ul>
+      <li>
+        &copy;
+        2020-2021
+         Aitsuki
+         <a href="https://beian.miit.gov.cn/" target="_black" rel="nofollow">粤ICP备2020133133</a>
+      </li>
+    </ul>
+    <ul>
+      
+      <li>
+          <a target="_blank" rel="nofollow" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030502006706" style="display: inline-block;padding-left: 22px;background: url(https://picturebed-1255566605.cos.ap-guangzhou.myqcloud.com/beian.png) no-repeat">粤公网安备44030502006706号</a>
+      </li>
+        
+    </ul>
+    <!-- <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul> -->
+    <!-- <ul>
+      <li> -->
+        <!-- cnzz统计 -->
+        <!-- 
+      </li>
+    </ul> -->
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/avatar.png" alt="Aitsuki"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i></p>
+  <div class="reward-box">
+    
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    collapseDepth: 6,
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+<!-- CanvasBackground -->
+
+
+    
+  </div>
+</body>
+
+</html>
