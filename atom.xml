@@ -6,7 +6,7 @@
   <link href="https://aitsuki.com/atom.xml" rel="self"/>
   
   <link href="https://aitsuki.com/"/>
-  <updated>2021-02-24T07:38:59.248Z</updated>
+  <updated>2021-02-24T07:41:41.438Z</updated>
   <id>https://aitsuki.com/</id>
   
   <author>
@@ -17,11 +17,11 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title></title>
-    <link href="https://aitsuki.com/2021/02/24/undefined/"/>
-    <id>https://aitsuki.com/2021/02/24/undefined/</id>
-    <published>2021-02-24T07:38:32.636Z</published>
-    <updated>2021-02-24T07:38:59.248Z</updated>
+    <title>算法4 左倾红黑树</title>
+    <link href="https://aitsuki.com/2021/02/24/algs4-left-leaning-red-black-tree/"/>
+    <id>https://aitsuki.com/2021/02/24/algs4-left-leaning-red-black-tree/</id>
+    <published>2021-02-24T07:41:31.000Z</published>
+    <updated>2021-02-24T07:41:41.438Z</updated>
     
     
       
