@@ -6,7 +6,7 @@
   <link href="https://aitsuki.com/atom.xml" rel="self"/>
   
   <link href="https://aitsuki.com/"/>
-  <updated>2021-02-20T19:19:10.252Z</updated>
+  <updated>2021-02-24T07:38:59.248Z</updated>
   <id>https://aitsuki.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title></title>
+    <link href="https://aitsuki.com/2021/02/24/undefined/"/>
+    <id>https://aitsuki.com/2021/02/24/undefined/</id>
+    <published>2021-02-24T07:38:32.636Z</published>
+    <updated>2021-02-24T07:38:59.248Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;现代计算机和网络允许我们查找海量的信息，前提是拥有高效检索这些信息的能力。符号表（或字典）则是用于检索信息的经典查找算法或数据结构，红黑树正是其中的代表。&lt;/p&gt;
+&lt;p&gt;在学习红黑树之前，我们需要对有序符号表进行进一步的了解。&lt;/p&gt;
+&lt;h2</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
   
   <entry>
     <title>算法4 二维碰撞（冲量方案）</title>
